@@ -81,7 +81,7 @@ public class Player {
         this.senseiId = getSavedThingFromDatabaseLong("senseiId");
         this.berri = getDatabaseThing("berri");
         this.rainbowShards = getDatabaseThing("rainbowShards");
-        this.rainbowShards = getDatabaseThing("rainbowShardsBought");
+        this.rainbowShardsBought = getDatabaseThing("rainbowShardsBought");
         this.skillSlotsCap = getDatabaseThing("skillSlotsCap");
     }
 
@@ -697,7 +697,7 @@ public class Player {
 
     public Player setRainbowShardsBought(int rainbowShardsBought) {
         this.rainbowShardsBought = rainbowShardsBought;
-        setInDatabase(this.userId, rainbowShards, "rainbowShards");
+        setInDatabase(this.userId, rainbowShardsBought, "rainbowShardsBought");
         return this;
     }
 

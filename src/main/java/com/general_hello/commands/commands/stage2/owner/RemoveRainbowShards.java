@@ -19,7 +19,7 @@ public class RemoveRainbowShards extends Command {
             String[] args = event.getArgs().split("\\s+");
             int rainbowShards = Integer.parseInt(args[0]);
             long userid = Long.parseLong(args[1]);
-            boolean bought = Boolean.getBoolean(args[2]);
+            boolean bought = Boolean.parseBoolean(args[2]);
             // Gets the player from the user that was retrieved by using the user id
             User user = event.getJDA().getUserById(userid);
             Player player = DataUtils.getPlayer(user);

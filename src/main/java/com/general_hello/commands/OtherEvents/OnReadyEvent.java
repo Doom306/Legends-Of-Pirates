@@ -201,6 +201,7 @@ public class OnReadyEvent extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (!event.isFromGuild()) return;
         // Stores the message if the user pinged @Xraze since the deleted message event doesn't show the content of the deleted message
         if (!event.getGuild().getId().equals(Config.get("guild"))) return;
         try {

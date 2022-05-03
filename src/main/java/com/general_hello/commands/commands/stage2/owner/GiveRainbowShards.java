@@ -24,7 +24,7 @@ public class GiveRainbowShards extends Command {
             String[] args = event.getArgs().split("\\s+");
             int rainbowShards = Integer.parseInt(args[0]);
             long userid = Long.parseLong(args[1]);
-            boolean bought = Boolean.getBoolean(args[2]);
+            boolean bought = Boolean.parseBoolean(args[2]);
             // Gets the player from the user that gets it from the user id
             User user = event.getJDA().getUserById(userid);
             Player player = DataUtils.getPlayer(user);
