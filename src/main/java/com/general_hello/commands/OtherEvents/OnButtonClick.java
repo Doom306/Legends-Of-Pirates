@@ -1,12 +1,16 @@
 package com.general_hello.commands.OtherEvents;
 
 import com.general_hello.commands.Database.DataUtils;
-import com.general_hello.commands.Objects.Items.Object;
 import com.general_hello.commands.Objects.Emojis.RPGEmojis;
+import com.general_hello.commands.Objects.Items.Object;
+import com.general_hello.commands.Objects.Map.Grid;
+import com.general_hello.commands.Objects.Map.Map;
 import com.general_hello.commands.Objects.Trade.Trade;
 import com.general_hello.commands.Objects.User.Player;
+import com.general_hello.commands.Utils.EmbedUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Emoji;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -15,8 +19,12 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.general_hello.commands.commands.stage3.PlayCommand.userLocations;
+import static com.general_hello.commands.commands.stage3.PlayCommand.userToLocations;
 
 public class OnButtonClick extends ListenerAdapter {
     @Override
@@ -142,7 +150,94 @@ public class OnButtonClick extends ListenerAdapter {
                 }
                 event.getMessage().editMessageEmbeds(trade.buildEmbed().build()).setActionRow(Button.secondary("ignore", "Trade Accepted").asDisabled()).queue();
                 trade.deleteTrade();
+            } case "up" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()).get(prevGrid.getY() - 2);
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "upleft" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()-1).get(prevGrid.getY() - 2);
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "upright" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()+1).get(prevGrid.getY() - 2);
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "left" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()-1).get(prevGrid.getY()-1);
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "right" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()+1).get(prevGrid.getY()-1);
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "downleft" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()-1).get(prevGrid.getY());
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "downright" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()+1).get(prevGrid.getY());
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "down" -> {
+                long userid = event.getUser().getIdLong();
+                Grid prevGrid = userToLocations.get(userid);
+                Grid newGrid = Grid.gridsX.get(prevGrid.getX()).get(prevGrid.getY());
+                sendMap(event, userid, prevGrid, newGrid);
+            } case "nada" -> {
+                event.reply("Fight message here").queue();
             }
         }
+    }
+
+    private void sendMap(@NotNull ButtonInteractionEvent event, long userid, Grid prevGrid, Grid newGrid) {
+        MessageEmbed messageEmbed = EmbedUtil.defaultEmbed(Map.buildMap(newGrid));
+        if (userToLocations.containsKey(event.getUser().getIdLong())) {
+            Grid oldGrid = userToLocations.get(event.getUser().getIdLong());
+            ArrayList<Long> userOld = userLocations.get(oldGrid);
+            userOld.remove(event.getUser().getIdLong());
+            userLocations.put(oldGrid, userOld);
+        }
+
+        if (userLocations.containsKey(prevGrid)) {
+            ArrayList<Long> usersOld = userLocations.get(prevGrid);
+            usersOld.remove(event.getUser().getIdLong());
+            userLocations.put(prevGrid, usersOld);
+        }
+
+        ArrayList<Long> userFromGrids = new ArrayList<>();
+        if (userLocations.containsKey(newGrid)) {
+            userFromGrids = userLocations.get(newGrid);
+        }
+        userFromGrids.add(event.getUser().getIdLong());
+        userLocations.put(newGrid, userFromGrids);
+        userToLocations.put(event.getUser().getIdLong(), newGrid);
+        boolean canFight = false;
+        if (userLocations.get(newGrid).size() > 1) {
+            canFight = true;
+        }
+        event.getMessage().editMessageEmbeds(messageEmbed).setActionRows(
+                ActionRow.of(
+                        Button.secondary(userid + ":upleft", Emoji.fromMarkdown("↖")).withDisabled(newGrid.getY() - 1 <= 0 || newGrid.getX() -1 == 0),
+                        Button.secondary(userid + ":up", Emoji.fromMarkdown("⬆")).withDisabled(newGrid.getY() - 1 == 0),
+                        Button.secondary(userid + ":upright", Emoji.fromMarkdown("↗")).withDisabled(newGrid.getY() -1 <= 0 || newGrid.getX() +1 > 15)
+                ), ActionRow.of(
+                        Button.secondary(userid + ":left", Emoji.fromMarkdown("⬅")).withDisabled(newGrid.getX() -1 <= 0),
+                        Button.secondary("empty", "\u200E").asDisabled(),
+                        Button.secondary(userid + ":right", Emoji.fromMarkdown("➡")).withDisabled(newGrid.getX() +1 > 15)
+                ), ActionRow.of(
+                        Button.secondary(userid + ":downleft", Emoji.fromMarkdown("↙")).withDisabled(newGrid.getY() +1 > 15 || newGrid.getX() -1 == 0),
+                        Button.secondary(userid + ":down", Emoji.fromMarkdown("⬇")).withDisabled(newGrid.getY() + 1 > 15),
+                        Button.secondary(userid + ":downright", Emoji.fromMarkdown("↘")).withDisabled(newGrid.getY() + 1 > 15 || newGrid.getX() +1 > 15),
+                        Button.secondary("nada", canFight ? "Fight" : "\u200E").withDisabled(!canFight)
+                )
+        ).queue();
+        event.deferEdit().queue();
     }
 }

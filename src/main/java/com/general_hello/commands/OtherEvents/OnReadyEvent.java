@@ -5,6 +5,7 @@ import com.general_hello.Config;
 import com.general_hello.commands.Database.DataUtils;
 import com.general_hello.commands.Database.SQLiteDataSource;
 import com.general_hello.commands.Items.Initializer;
+import com.general_hello.commands.Objects.Map.Map;
 import com.general_hello.commands.Objects.Others.Achievement;
 import com.general_hello.commands.Objects.Items.Object;
 import com.general_hello.commands.Utils.EmbedUtil;
@@ -36,6 +37,7 @@ public class OnReadyEvent extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
+        Map.initializeMap();
         try {
             Bot.jda = event.getJDA();
             LOGGER.info("Starting the bot...");
